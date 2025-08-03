@@ -1,0 +1,1002 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Space Sim v17.18 - Boosty Autopilot</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #0A001A; 
+            font-family: 'Orbitron', sans-serif; 
+            color: #0ff; 
+        }
+        canvas { display: block; } 
+        
+        #credits-container { 
+            position: fixed; 
+            bottom: 10px; 
+            left: 10px; 
+            font-size: 14px; 
+            color: rgba(0, 255, 255, 0.7); 
+            text-shadow: 0 0 4px #000, 0 0 6px #0ff; 
+            pointer-events: none; 
+            z-index: 200; 
+            display: flex;
+            align-items: center;
+        }
+        #credits-container a {
+            color: #f0f; 
+            text-decoration: none;
+            pointer-events: all;
+            margin: 0 6px;
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+        #credits-container a:hover {
+            color: #fff;
+            text-shadow: 0 0 10px #f0f, 0 0 5px #f0f;
+        }
+        #toggle-debug {
+            background: rgba(255, 0, 255, 0.25); 
+            border: 1px solid #f0f;
+            color: #f0f;
+            padding: 4px 10px; 
+            margin-left: 20px;
+            font-size: 12px; 
+            cursor: pointer;
+            pointer-events: all;
+            border-radius: 4px;
+            transition: background-color 0.3s, box-shadow 0.3s, transform 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        #toggle-debug:hover {
+            background: rgba(255, 0, 255, 0.5);
+            box-shadow: 0 0 12px #f0f;
+        }
+        #toggle-debug.active { 
+            background: rgba(255, 0, 255, 0.6);
+            box-shadow: 0 0 15px #f0f, inset 0 0 5px rgba(255,0,255,0.5);
+            color: #fff;
+        }
+        #toggle-debug:active {
+            transform: translateY(1px);
+        }
+
+        #debug-panel { 
+            position: fixed; 
+            bottom: 40px; 
+            left: 10px; 
+            background: rgba(10, 0, 26, 0.92); 
+            color: #0ff; 
+            padding: 18px; 
+            font-family: 'Consolas', 'Lucida Console', monospace;
+            font-size: 13px; 
+            max-height: calc(100vh - 90px); 
+            overflow-y: auto; 
+            display: none; 
+            border: 1px solid #f0f; 
+            border-radius: 6px;
+            box-shadow: 0 0 20px rgba(255,0,255,0.6); 
+            width: 340px; 
+            z-index: 199; 
+        }
+        #debug-panel h4 {
+            margin-top: 0;
+            margin-bottom: 15px; 
+            color: #f0f; 
+            text-align: center;
+            border-bottom: 1px solid rgba(255,0,255,0.4);
+            padding-bottom: 8px;
+            font-size: 16px; 
+            letter-spacing: 1px;
+        }
+        #debug-panel label { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-top: 10px; 
+            color: #0ff; 
+            cursor: help; 
+        }
+        #debug-panel input[type="range"] { 
+            width: 150px; 
+            vertical-align: middle; 
+            cursor: pointer;
+            accent-color: #f0f; 
+        }
+        #debug-panel input[type="number"],
+        #debug-panel input[type="text"] { 
+            width: 80px; 
+            background: rgba(0,0,0,0.6);
+            color: #0ff;
+            border: 1px solid #0bb; 
+            border-radius: 3px;
+            padding: 4px; 
+            font-size: 12px; 
+        }
+        #debug-panel .control-group {
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed rgba(0,255,255,0.25);
+        }
+         #debug-panel .control-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        #debug-panel .value-display {
+            min-width: 50px; 
+            text-align: right;
+            color: #fff; 
+        }
+        #debug-panel .control-label-text {
+             white-space: nowrap;
+             overflow: hidden;
+             text-overflow: ellipsis;
+             margin-right: 10px;
+        }
+
+        #debug-panel::-webkit-scrollbar { width: 10px; }
+        #debug-panel::-webkit-scrollbar-track { background: rgba(10, 0, 26, 0.7); }
+        #debug-panel::-webkit-scrollbar-thumb { background: #f0f; border-radius: 5px; border: 1px solid #0A001A;}
+        #debug-panel::-webkit-scrollbar-thumb:hover { background: #ff33ff; }
+
+        .sim-button { 
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            background: #f0f;
+            color: #0A001A;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background-color 0.15s, box-shadow 0.15s, transform 0.1s;
+        }
+        .sim-button:hover {
+            background: #ff33ff;
+            box-shadow: 0 0 15px #f0f;
+        }
+        .sim-button:active, .sim-button.flashing {
+            background: #0ff; 
+            color: #000;
+            box-shadow: 0 0 20px #0ff;
+            transform: translateY(1px);
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
+    </style>
+</head>
+<body>
+    <div id="credits-container">
+        <span>Neon Space Sim | By <a href="https://tront.xyz/" target="_blank">Trent Sterling</a> | May 2025 (v17.18)</span>
+        <button id="toggle-debug">Debug</button>
+    </div>
+    <canvas id="space-canvas"></canvas>
+    <div id="debug-panel"></div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+                "simplex-noise": "https://unpkg.com/simplex-noise@4.0.1/dist/esm/simplex-noise.js"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { createNoise3D } from 'simplex-noise';
+
+        function simpleHash(str) { let hash = 0; for (let i = 0; i < str.length; i++) { const char = str.charCodeAt(i); hash = ((hash << 5) - hash) + char; hash |= 0; } return Math.abs(hash); }
+        function mulberry32(a) { return function() { var t = a += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; } }
+
+        const defaultSimControls = Object.freeze({
+            seedString: "1337",
+            universeHorizon: 20133,
+            generationRadiusFactor: 1.00,
+            cosmosUpdateDistanceFactor: 0.26,
+            bgColorNoiseScale: 0.00008, 
+            starGridStep: 630,
+            starNoiseScale: 0.01623,
+            starDensityThreshold: 0.17,
+            starDensityCurveExponent: 3.50,
+            starSizeStrengthCurveExponent: 1.34,
+            starWiggleFactor: 0.80,
+            starSizeMinBase: 8.50,
+            starSizeMaxScaledByNoise: 60.00,
+            starFadeMinDistanceFactor: 0.60,
+            starFadeMaxDistanceFactor: 0.98,
+            nebulaGridStep: 1800,
+            nebulaNoiseScale: 0.0003,
+            nebulaDensityThreshold: 0.62,
+            nebulaMaxActive: 10,
+            nebulaGenerationRadiusFactor: 0.95,
+        });
+        
+        let simControls = JSON.parse(JSON.stringify(defaultSimControls)); 
+        
+        let mainSeedInt = simpleHash(simControls.seedString);
+        
+        let noise3DGen_main; 
+        let colorNoiseGenR_main, colorNoiseGenG_main, colorNoiseGenB_main;
+
+        let scene, camera, renderer;
+        let starsPoints; 
+        let activeNebulae = new Map(); 
+        let clock = new THREE.Clock();
+        let starWorker;
+        let isGeneratingStars = false;
+        let lastCamPosForUpdate = new THREE.Vector3(-Infinity, -Infinity, -Infinity); 
+        let currentGenerationRadius = 0;
+        let currentCosmosUpdateThreshold = 0;
+        let currentShipVelocity = new THREE.Vector3();
+
+        const gameCanvas = document.getElementById('space-canvas');
+        const keys = {}; 
+        let baseCameraMoveSpeed = 350.0; 
+        const insaneSpeedMultiplier = 180.0; // Adjusted
+        const cameraRotationSpeed = 1.5; 
+        let phasers = []; 
+        const phaserSpeed = 450.0; 
+        const phaserLifetime = 0.6; 
+        let lastInteractionTime = Date.now();
+        const screensaverTimeout = 10000; 
+        let screensaverActive = false; 
+        let pointerLocked = false;
+        let screensaverDriftSpeed = 350.0; 
+        const screensaverYawSpeed = 0.03; 
+        const screensaverPitchAmplitude = 0.08; 
+        const screensaverPitchFrequency = 0.06; 
+        const screensaverNebulaSeekFactor = 0.02;
+        const autopilotBaseRollSpeed = 0.02;
+        const autopilotBoostRollMultiplier = 3.0;
+        let currentAutopilotSpeed = screensaverDriftSpeed;
+        const autopilotSpeedLerpFactor = 0.05;
+
+        let isWarpingIn = true;
+        let warpInSpeed = 2500.0; 
+        const warpInDeceleration = 800.0; 
+
+        let isFiringMouseDown = false;
+        const phaserFireRate = 3.5; 
+        let phaserFireCooldown = 1.0 / phaserFireRate;
+        let phaserFireTimer = 0;
+
+        let autopilotPhaserFireTimer = 0;
+        const autopilotPhaserMinFireInterval = 2.5; 
+        const autopilotPhaserMaxFireInterval = 7.0; 
+        let currentAutopilotPhaserCooldown = THREE.MathUtils.randFloat(autopilotPhaserMinFireInterval, autopilotPhaserMaxFireInterval);
+
+        let isAutopilotBoosting = false;
+        let autopilotBoostTimer = 0;
+        const autopilotBoostDuration = 7.0; // Increased 
+        let autopilotBoostCooldownTimer = 5.0; 
+        const autopilotMinBoostInterval = 5.0; // Decreased
+        const autopilotMaxBoostInterval = 12.0; // Decreased
+        const autopilotBoostMultiplier = 4.0; 
+
+
+        const tooltips = { /* ... same ... */ 
+            seedString: "String to seed all random generation. Change for a new universe.",
+            universeHorizon: "Overall 'draw distance' for the farthest elements. (Range: 1000-50000)",
+            generationRadiusFactor: "Percentage of Horizon used as radius for active generation. (Range: 0.1-1.0)",
+            cosmosUpdateDistanceFactor: "Factor of StarGridStep camera must move to trigger regeneration. (Range: 0.1-5.0)",
+            bgColorNoiseScale: "Scale of Simplex noise for dynamic background/fog colors. (Range: 0.00001-0.001)",
+            starGridStep: "Base spacing of the star generation grid. Smaller = denser potential. (Range: 10-1000)",
+            starNoiseScale: "Scale of Simplex noise for star density. Smaller = larger features. (Range: 0.0001-0.02)",
+            starDensityThreshold: "Cutoff for star generation after noise is curved (0-1). Higher = fewer stars. (Range: 0.01-0.99)",
+            starDensityCurveExponent: "Power to apply to normalized star density noise. >1 creates more contrast. (Range: 0.1-10.0)",
+            starSizeStrengthCurveExponent: "Power to apply to star size scaling based on density. >1 exaggerates size differences. (Range: 0.1-10.0)",
+            starWiggleFactor: "Max random offset for stars from grid points (factor of GridStep). (Range: 0.01-1.0)",
+            starSizeMinBase: "Minimum base size for stars. (Range: 0.1-30)",
+            starSizeMaxScaledByNoise: "Maximum size stars can reach in very dense noise areas. (Range: 5-200)",
+            starFadeMinDistanceFactor: "Factor of GenerationRadius where stars start fading. (Range: 0.01-1.0)",
+            starFadeMaxDistanceFactor: "Factor of GenerationRadius where stars are fully faded. (Range: 0.01-1.0)",
+            nebulaGridStep: "Base spacing for nebula center placement. Larger = more spread out nebulae regions. (Range: 100-5000)",
+            nebulaNoiseScale: "Scale of Simplex noise for nebula placement. (Range: 0.00001-0.001)",
+            nebulaDensityThreshold: "Cutoff for nebula generation based on noise (0-1). (Range: 0.01-0.99)",
+            nebulaMaxActive: "Maximum number of nebula systems active at once. (Range: 1-50)",
+            nebulaGenerationRadiusFactor: "Factor of UniverseHorizon for nebula generation/culling. (Range: 0.1-1.0)",
+        };
+
+        function onWindowResize() { if (!camera) return; camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
+        function onKeyDown(event) { 
+            if (isWarpingIn) return; 
+            if (!pointerLocked) return; 
+            keys[event.code] = true; 
+            lastInteractionTime = Date.now(); 
+            if (screensaverActive) camera.userData.wasAutopilotActive = true; 
+            screensaverActive = false; 
+        }
+        function onKeyUp(event) { 
+             if (isWarpingIn) return;
+            if (!pointerLocked) return; 
+            keys[event.code] = false; 
+        }
+        function onMouseMove(event) { 
+            if (isWarpingIn) return;
+            if (!pointerLocked) return; 
+            lastInteractionTime = Date.now(); 
+            if (screensaverActive) camera.userData.wasAutopilotActive = true;
+            screensaverActive = false; 
+            const mX = event.movementX || 0; const mY = event.movementY || 0; 
+            camera.rotation.y -= mX * 0.002 * cameraRotationSpeed; 
+            camera.rotation.x -= mY * 0.002 * cameraRotationSpeed; 
+            camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x)); 
+        }
+        
+        function firePhaserLogic() { /* ... same ... */  
+            const phaserMaterial = new THREE.MeshBasicMaterial({ color: 0xff6000, transparent: true, opacity: 0.85 }); 
+            const phaserGeometry = new THREE.BoxGeometry(0.1, 0.1, 10); 
+            const phaserBeam = new THREE.Mesh(phaserGeometry, phaserMaterial);
+            const startPosition = new THREE.Vector3(0, -0.1, -2.0); 
+            startPosition.applyMatrix4(camera.matrixWorld); 
+            phaserBeam.position.copy(startPosition);
+            
+            const direction = new THREE.Vector3(0, 0, -1);
+            direction.applyQuaternion(camera.quaternion); 
+            phaserBeam.quaternion.copy(camera.quaternion); 
+            
+            const phaserInitialVelocity = direction.multiplyScalar(phaserSpeed);
+            phaserInitialVelocity.add(currentShipVelocity); 
+            
+            phaserBeam.userData = { velocity: phaserInitialVelocity, lifetime: phaserLifetime };
+            scene.add(phaserBeam); phasers.push(phaserBeam); 
+        };
+
+        function attemptPhaserFire() { /* ... same ... */ 
+            if (isWarpingIn) return;
+            if (!pointerLocked && !screensaverActive) return; 
+            
+            if (phaserFireTimer <= 0) {
+                firePhaserLogic();
+                phaserFireTimer = phaserFireCooldown;
+                if (!screensaverActive) { 
+                    lastInteractionTime = Date.now();
+                    screensaverActive = false;
+                }
+            }
+        }
+
+        function updatePhasers(deltaTime) { /* ... same ... */  
+            if (phaserFireTimer > 0) phaserFireTimer -= deltaTime;
+            for (let i = phasers.length - 1; i >= 0; i--) { const p = phasers[i]; p.userData.lifetime -= deltaTime; if (p.userData.lifetime <= 0) { scene.remove(p); if (p.geometry) p.geometry.dispose(); if (p.material) p.material.dispose(); phasers.splice(i, 1); } else { const d = p.userData.velocity.clone().multiplyScalar(deltaTime); p.position.add(d); } } 
+        };
+
+        const starVertexShader = ` /* ... same ... */ 
+            attribute float size; attribute vec3 color; varying vec3 vColor; varying float vDepth;
+            void main() { 
+                vColor = color; 
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); 
+                vDepth = -mvPosition.z; 
+                gl_PointSize = size * (2500.0 / vDepth ); 
+                gl_Position = projectionMatrix * mvPosition; 
+            }`;
+        const starFragmentShader = ` /* ... same ... */ 
+            varying vec3 vColor; varying float vDepth;
+            uniform float uFadeMinDist; uniform float uFadeMaxDist;
+            void main() { 
+                float d = length(gl_PointCoord - vec2(0.5)); 
+                if (d > 0.5) discard; 
+                float fadeAlpha = 1.0;
+                if (vDepth > uFadeMinDist && uFadeMaxDist > uFadeMinDist) {
+                    fadeAlpha = smoothstep(uFadeMaxDist, uFadeMinDist, vDepth);
+                }
+                gl_FragColor = vec4(vColor, (1.0 - d * 2.0) * 0.95 * fadeAlpha ); 
+            }`;
+        const nebulaVertexShader = `  /* ... same ... */ 
+            attribute float size; attribute vec3 color; varying vec3 vColor;
+            void main() { vColor = color; vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); gl_PointSize = size * (1500.0 / -mvPosition.z); gl_Position = projectionMatrix * mvPosition; }`;
+        const nebulaFragmentShader = ` /* ... same ... */  
+            varying vec3 vColor;
+            void main() { float d = length(gl_PointCoord - vec2(0.5)); if (d > 0.5) discard; gl_FragColor = vec4(vColor, (1.0 - d * 1.8) * 0.12); }`;
+
+        function getStarWorkerScriptContent() { /* ... same ... */ return `
+                let noise3DGen_worker;
+                let mainSeedInt_worker_val; 
+
+                const starBaseColors_worker = [ 
+                    {r:0,g:1,b:1}, {r:1,g:0,b:1}, {r:0.533,g:0.533,b:1}, {r:1,g:0.533,b:0}, 
+                    {r:0.8,g:0.2,b:1}, {r:1,g:1,b:1}, {r:0.533,g:1,b:0}, {r:1,g:1,b:0.533}
+                ];
+
+                function simpleHash_worker(str) { let hash = 0; for (let i = 0; i < str.length; i++) { const char = str.charCodeAt(i); hash = ((hash << 5) - hash) + char; hash |= 0; } return Math.abs(hash); }
+                function mulberry32_worker(a) { return function() { var t = a += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; } }
+                function mapLinear_worker(value, inMin, inMax, outMin, outMax) { return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin); }
+                
+                const F3 = 1.0 / 3.0; const G3 = 1.0 / 6.0;
+                const grad3 = new Float32Array([1,1,0, -1,1,0, 1,-1,0, -1,-1,0, 1,0,1, -1,0,1, 1,0,-1, -1,0,-1, 0,1,1, 0,-1,1, 0,1,-1, 0,-1,-1]);
+                let perm = new Uint8Array(512); let permMod12 = new Uint8Array(512);
+
+                function buildPermutationTable(random) {
+                    const p = new Uint8Array(256); for (let i = 0; i < 256; i++) p[i] = i;
+                    for (let i = 255; i > 0; i--) { const r = Math.floor(random() * (i + 1)); const temp = p[i]; p[i] = p[r]; p[r] = temp; }
+                    perm = new Uint8Array(512); permMod12 = new Uint8Array(512);
+                    for (let i = 0; i < 512; i++) { perm[i] = p[i & 255]; permMod12[i] = perm[i] % 12; }
+                }
+
+                function createNoise3D_worker(random) { 
+                    buildPermutationTable(random);
+                    return function(x, y, z) {
+                        let n0, n1, n2, n3; const s = (x + y + z) * F3; 
+                        const i = Math.floor(x + s); const j = Math.floor(y + s); const k = Math.floor(z + s);
+                        const t = (i + j + k) * G3;
+                        const X0 = i - t; const Y0 = j - t; const Z0 = k - t;
+                        const x0 = x - X0; const y0 = y - Y0; const z0 = z - Z0;
+                        let i1, j1, k1; let i2, j2, k2; 
+                        if (x0 >= y0) { if (y0 >= z0) { i1=1; j1=0; k1=0; i2=1; j2=1; k2=0; } else if (x0 >= z0) { i1=1; j1=0; k1=0; i2=1; j2=0; k2=1; } else { i1=0; j1=0; k1=1; i2=1; j2=0; k2=1; } }
+                        else { if (y0 < z0) { i1=0; j1=0; k1=1; i2=0; j2=1; k2=1; } else if (x0 < z0) { i1=0; j1=1; k1=0; i2=0; j2=1; k2=1; } else { i1=0; j1=1; k1=0; i2=1; j2=1; k2=0; } }
+                        const x1 = x0 - i1 + G3; const y1 = y0 - j1 + G3; const z1 = z0 - k1 + G3;
+                        const x2 = x0 - i2 + 2.0 * G3; const y2 = y0 - j2 + 2.0 * G3; const z2 = z0 - k2 + 2.0 * G3;
+                        const x3 = x0 - 1.0 + 3.0 * G3; const y3 = y0 - 1.0 + 3.0 * G3; const z3 = z0 - 1.0 + 3.0 * G3;
+                        const ii = i & 255; const jj = j & 255; const kk = k & 255;
+                        let t0 = 0.6 - x0*x0 - y0*y0 - z0*z0; if (t0 < 0) n0 = 0.0; else { const gi0 = permMod12[ii+perm[jj+perm[kk]]]*3; t0 *= t0; n0 = t0 * t0 * (grad3[gi0]*x0 + grad3[gi0+1]*y0 + grad3[gi0+2]*z0); }
+                        let t1 = 0.6 - x1*x1 - y1*y1 - z1*z1; if (t1 < 0) n1 = 0.0; else { const gi1 = permMod12[ii+i1+perm[jj+j1+perm[kk+k1]]]*3; t1 *= t1; n1 = t1 * t1 * (grad3[gi1]*x1 + grad3[gi1+1]*y1 + grad3[gi1+2]*z1); }
+                        let t2 = 0.6 - x2*x2 - y2*y2 - z2*z2; if (t2 < 0) n2 = 0.0; else { const gi2 = permMod12[ii+i2+perm[jj+j2+perm[kk+k2]]]*3; t2 *= t2; n2 = t2 * t2 * (grad3[gi2]*x2 + grad3[gi2+1]*y2 + grad3[gi2+2]*z2); }
+                        let t3 = 0.6 - x3*x3 - y3*y3 - z3*z3; if (t3 < 0) n3 = 0.0; else { const gi3 = permMod12[ii+1+perm[jj+1+perm[kk+1]]]*3; t3 *= t3; n3 = t3 * t3 * (grad3[gi3]*x3 + grad3[gi3+1]*y3 + grad3[gi3+2]*z3); }
+                        return 32.0 * (n0 + n1 + n2 + n3);
+                    };
+                }
+                
+                self.onmessage = function(e) {
+                    const controls = e.data.simControls; 
+                    const { camX, camY, camZ } = e.data;
+
+                    if (!mainSeedInt_worker_val || mainSeedInt_worker_val !== simpleHash_worker(controls.seedString)) {
+                         mainSeedInt_worker_val = simpleHash_worker(controls.seedString);
+                         noise3DGen_worker = createNoise3D_worker(mulberry32_worker(mainSeedInt_worker_val + 1));
+                    }
+                   
+                    const starPositions_W = []; const starColors_W = []; const starSizes_W = [];
+                    const current_generation_radius_w = controls.universeHorizon * controls.generationRadiusFactor;
+
+                    const minGx = Math.floor((camX - current_generation_radius_w) / controls.starGridStep) * controls.starGridStep; 
+                    const maxGx = Math.ceil((camX + current_generation_radius_w) / controls.starGridStep) * controls.starGridStep;
+                    const minGy = Math.floor((camY - current_generation_radius_w) / controls.starGridStep) * controls.starGridStep; 
+                    const maxGy = Math.ceil((camY + current_generation_radius_w) / controls.starGridStep) * controls.starGridStep;
+                    const minGz = Math.floor((camZ - current_generation_radius_w) / controls.starGridStep) * controls.starGridStep; 
+                    const maxGz = Math.ceil((camZ + current_generation_radius_w) / controls.starGridStep) * controls.starGridStep;
+                    const wiggleRange = controls.starGridStep * controls.starWiggleFactor;
+
+                    for (let gx = minGx; gx <= maxGx; gx += controls.starGridStep) {
+                        for (let gy = minGy; gy <= maxGy; gy += controls.starGridStep) {
+                            for (let gz = minGz; gz <= maxGz; gz += controls.starGridStep) {
+                                const distSq = (gx - camX)*(gx - camX) + (gy - camY)*(gy - camY) + (gz - camZ)*(gz - camZ);
+                                if (distSq > current_generation_radius_w * current_generation_radius_w * 1.05) continue;
+                                
+                                const rawDensityNoiseVal = noise3DGen_worker(gx * controls.starNoiseScale, gy * controls.starNoiseScale, gz * controls.starNoiseScale);
+                                const normalizedDensity = (rawDensityNoiseVal + 1.0) / 2.0; 
+                                const curvedDensity = Math.pow(normalizedDensity, controls.starDensityCurveExponent);
+
+                                if (curvedDensity > controls.starDensityThreshold) {
+                                    const starLocalRandom = mulberry32_worker(simpleHash_worker(gx + "_" + gy + "_" + gz + "_" + mainSeedInt_worker_val + "_wiggle"));
+                                    const wiggleX = (starLocalRandom() - 0.5) * wiggleRange; const wiggleY = (starLocalRandom() - 0.5) * wiggleRange; const wiggleZ = (starLocalRandom() - 0.5) * wiggleRange;
+                                    starPositions_W.push(gx + wiggleX, gy + wiggleY, gz + wiggleZ);
+                                    
+                                    const colorNoiseVal = noise3DGen_worker(gx*0.02, gy*0.02, gz*0.02 + 100); 
+                                    const baseColor = starBaseColors_worker[Math.floor(mapLinear_worker(colorNoiseVal, -1, 1, 0, starBaseColors_worker.length - 0.001))];
+                                    starColors_W.push(baseColor.r, baseColor.g, baseColor.b); 
+                                    
+                                    let strengthFactor = (curvedDensity - controls.starDensityThreshold) / (1.0 - controls.starDensityThreshold);
+                                    strengthFactor = Math.pow(Math.max(0, strengthFactor), controls.starSizeStrengthCurveExponent);
+                                    
+                                    let baseSize = controls.starSizeMinBase + strengthFactor * (controls.starSizeMaxScaledByNoise - controls.starSizeMinBase);
+                                    const individualSizeNoiseVal = noise3DGen_worker(gx*0.03, gy*0.03, gz*0.03 + 200); 
+                                    const sizeMultiplier = mapLinear_worker(individualSizeNoiseVal, -1, 1, 0.85, 1.15);
+                                    starSizes_W.push(Math.max(0.5, baseSize * sizeMultiplier));
+                                }
+                            }
+                        }
+                    }
+                    self.postMessage({
+                        positions: new Float32Array(starPositions_W).buffer,
+                        colors: new Float32Array(starColors_W).buffer,
+                        sizes: new Float32Array(starSizes_W).buffer,
+                        starCount: starPositions_W.length / 3
+                    }, [new Float32Array(starPositions_W).buffer, new Float32Array(starColors_W).buffer, new Float32Array(starSizes_W).buffer]);
+                };
+            `;}
+
+        function updateDerivedSimParams() { /* ... same ... */  
+            currentGenerationRadius = simControls.universeHorizon * simControls.generationRadiusFactor;
+            currentCosmosUpdateThreshold = simControls.starGridStep * simControls.cosmosUpdateDistanceFactor;
+            
+            if(camera) {
+                camera.far = simControls.universeHorizon * 1.2;
+                camera.updateProjectionMatrix();
+            }
+            if (starsPoints && starsPoints.material.uniforms.uFadeMinDist) {
+                starsPoints.material.uniforms.uFadeMinDist.value = currentGenerationRadius * simControls.starFadeMinDistanceFactor;
+                starsPoints.material.uniforms.uFadeMaxDist.value = currentGenerationRadius * simControls.starFadeMaxDistanceFactor;
+            }
+        }
+
+        function initThreeJS() { /* ... same ... */  
+            updateDerivedSimParams(); 
+            
+            noise3DGen_main = createNoise3D(mulberry32(mainSeedInt + 1)); 
+            colorNoiseGenR_main = createNoise3D(mulberry32(mainSeedInt + 2)); 
+            colorNoiseGenG_main = createNoise3D(mulberry32(mainSeedInt + 3)); 
+            colorNoiseGenB_main = createNoise3D(mulberry32(mainSeedInt + 4)); 
+            console.log("Main: Simplex Noise Initialized. Main Seed Int:", mainSeedInt, "(Derived from '"+simControls.seedString+"')");
+
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.00028); 
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, simControls.universeHorizon * 1.2); 
+            camera.position.z = 70; camera.rotation.order = 'YXZ'; 
+            camera.userData = { wasAutopilotActive: false, screensaverInitialized: false };
+
+            renderer = new THREE.WebGLRenderer({ canvas: gameCanvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+
+            const starMaterial = new THREE.ShaderMaterial({ 
+                uniforms: {
+                    uFadeMinDist: { value: currentGenerationRadius * simControls.starFadeMinDistanceFactor },
+                    uFadeMaxDist: { value: currentGenerationRadius * simControls.starFadeMaxDistanceFactor }
+                },
+                vertexShader: starVertexShader, fragmentShader: starFragmentShader, 
+                transparent: true, blending: THREE.AdditiveBlending, depthWrite: false 
+            });
+            starsPoints = new THREE.Points(new THREE.BufferGeometry(), starMaterial);
+            starsPoints.frustumCulled = false; scene.add(starsPoints);
+            
+            const workerScriptContent = getStarWorkerScriptContent();
+            const blob = new Blob([workerScriptContent], { type: 'application/javascript' });
+            starWorker = new Worker(URL.createObjectURL(blob));
+
+            starWorker.onmessage = function(e) {
+                const { positions, colors, sizes } = e.data;
+                starsPoints.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+                starsPoints.geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
+                starsPoints.geometry.setAttribute('size', new THREE.BufferAttribute(new Float32Array(sizes), 1));
+                starsPoints.geometry.attributes.position.needsUpdate = true; 
+                starsPoints.geometry.attributes.color.needsUpdate = true; 
+                starsPoints.geometry.attributes.size.needsUpdate = true;
+                isGeneratingStars = false;
+            };
+            starWorker.onerror = function(error) { console.error("Main: Star Worker Error:", error.message, error); isGeneratingStars = false; };
+            
+            updateDynamicBackgroundAndFog();
+
+            document.addEventListener('mousemove', onMouseMove, false); 
+            document.addEventListener('keydown', onKeyDown, false); 
+            document.addEventListener('keyup', onKeyUp, false);
+            
+            gameCanvas.addEventListener('mousedown', (event) => {
+                if (pointerLocked && event.button === 0) { 
+                    isFiringMouseDown = true;
+                    attemptPhaserFire(); 
+                    lastInteractionTime = Date.now(); 
+                    if (screensaverActive) camera.userData.wasAutopilotActive = true;
+                    screensaverActive = false; 
+                }
+            });
+            gameCanvas.addEventListener('mouseup', (event) => {
+                if (event.button === 0) {
+                    isFiringMouseDown = false;
+                }
+            });
+            gameCanvas.addEventListener('click', () => { 
+                if (!pointerLocked) { 
+                    gameCanvas.requestPointerLock({ unadjustedMovement: true }).catch(e => {}); 
+                } 
+            });
+
+            document.addEventListener('pointerlockchange', () => { 
+                pointerLocked = document.pointerLockElement === gameCanvas; 
+                if (pointerLocked) { 
+                    lastInteractionTime = Date.now(); 
+                    if (screensaverActive) camera.userData.wasAutopilotActive = true;
+                    screensaverActive = false; 
+                    if (isWarpingIn) isWarpingIn = false; 
+                    document.body.style.cursor = 'none'; 
+                } else { 
+                    document.body.style.cursor = 'default'; 
+                    isFiringMouseDown = false; 
+                    if (!isWarpingIn) screensaverActive = true; 
+                } 
+            }, false);
+            window.addEventListener('resize', onWindowResize, false);
+            
+            const debugPanel = document.getElementById('debug-panel');
+            const toggleDebugButton = document.getElementById('toggle-debug');
+            toggleDebugButton.onclick = () => { 
+                const isOpen = debugPanel.style.display === 'block';
+                debugPanel.style.display = isOpen ? 'none' : 'block'; 
+                toggleDebugButton.classList.toggle('active', !isOpen);
+                if(!isOpen && debugPanel.innerHTML.length < 50) buildDebugPanel(); 
+                else if(!isOpen) updateDebugPanelValues(); 
+            };
+            
+            function updateDebugPanelValues() { /* ... same ... */  
+                 const inputs = debugPanel.querySelectorAll('input[type="range"], input[type="text"], input[type="number"]');
+                 inputs.forEach(input => {
+                    const key = input.dataset.key;
+                    if(simControls.hasOwnProperty(key)) {
+                        input.value = simControls[key];
+                        if(input.type === 'range' && input.nextElementSibling && input.nextElementSibling.classList.contains('value-display')) {
+                            const val = parseFloat(simControls[key]);
+                            const step = parseFloat(input.step);
+                            const precision = step.toString().includes('.') ? step.toString().split('.')[1].length : (val.toString().includes('.') ? val.toString().split('.')[1].length: 0);
+                            input.nextElementSibling.textContent = val.toFixed(Math.max( (key.includes("Scale") ? 5 : 2) , precision) );
+                        }
+                    }
+                 });
+            }
+
+            function buildDebugPanel() { /* ... same ... */  
+                debugPanel.innerHTML = '<h4>SIM CONTROLS</h4>'; 
+                let currentGroup;
+
+                function addControlToGroup(key, val) {
+                    const label = document.createElement('label');
+                    label.title = tooltips[key] || ''; 
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = key + ': ';
+                    nameSpan.className = 'control-label-text';
+                    label.appendChild(nameSpan);
+
+                    const controlContainer = document.createElement('span'); 
+
+                    let input;
+                    const valueSpan = document.createElement('span'); 
+                    valueSpan.className = 'value-display';
+
+                    if (typeof val === 'number') {
+                        input = document.createElement('input');
+                        input.type = 'range';
+                        input.dataset.key = key; 
+                        
+                        let stepVal = '1';
+                        if (key.includes('Factor') || key.includes('Threshold') || key.includes('Exponent')) { stepVal = '0.01'; }
+                        else if (key === 'starNoiseScale' || key === 'nebulaNoiseScale') { stepVal = '0.00001'; }
+                        else if (key === 'bgColorNoiseScale') { stepVal = '0.000005'; }
+                        else if (key.includes('SizeMinBase')) { stepVal = '0.1';}
+                        input.step = stepVal;
+                        
+                        const precision = input.step.includes('.') ? input.step.split('.')[1].length : (val.toString().includes('.') ? val.toString().split('.')[1].length : 0);
+                        valueSpan.textContent = val.toFixed(Math.max( (key.includes("Scale") ? 5 : 2) , precision) );
+
+
+                        if (key === 'universeHorizon') {input.min=1000; input.max=50000;} 
+                        else if (key.includes('Factor') || key.includes('Threshold')) { input.min = 0.01; input.max = 1.0; }
+                        else if (key.includes('Exponent')) { input.min = 0.1; input.max = 10.0; } 
+                        else if (key === 'starNoiseScale' || key === 'nebulaNoiseScale') { input.min = 0.00001; input.max = 0.03; } 
+                        else if (key === 'bgColorNoiseScale') { input.min = 0.00001; input.max = 0.001;} 
+                        else if (key.includes('SizeMinBase')) { input.min = 0.1; input.max = 30; } 
+                        else if (key.includes('SizeMaxScaled')) { input.min = 5; input.max = 200; } 
+                        else if (key.includes('starGridStep')) { input.min = 10; input.max = 1000; } 
+                        else if (key.includes('nebulaGridStep')) { input.min = 100; input.max = 5000; } 
+                        else if (key.includes('MaxActive')) {input.min=1; input.max=50;}
+                        else { input.min = 0; input.max = 100;}
+                        input.value = val;
+                        input.oninput = (e) => { 
+                            const newValue = parseFloat(e.target.value);
+                            simControls[key] = newValue; 
+                            valueSpan.textContent = newValue.toFixed(input.step.includes('.') ? input.step.split('.')[1].length : (newValue.toString().includes('.') ? newValue.toString().split('.')[1].length : 0) );
+                            updateDerivedSimParams();
+                        };
+                         controlContainer.appendChild(input);
+                         controlContainer.appendChild(valueSpan);
+                    } else if (typeof val === 'string') {
+                        input = document.createElement('input');
+                        input.type = 'text';
+                        input.dataset.key = key;
+                        input.value = val;
+                        input.onchange = (e) => { simControls[key] = e.target.value; updateDerivedSimParams(); forceCosmosUpdate(); };
+                        controlContainer.appendChild(input);
+                    }
+                    if (input) { label.appendChild(controlContainer); currentGroup.appendChild(label); }
+                }
+                
+                function createGroup(name) { /* ... same ... */  
+                    currentGroup = document.createElement('div');
+                    currentGroup.className = 'control-group';
+                    const groupTitle = document.createElement('h5');
+                    groupTitle.textContent = name;
+                    currentGroup.appendChild(groupTitle);
+                    debugPanel.appendChild(currentGroup);
+                }
+                
+                createGroup("General");
+                for(const k of ["seedString", "universeHorizon", "generationRadiusFactor", "cosmosUpdateDistanceFactor", "bgColorNoiseScale"]) addControlToGroup(k, simControls[k]);
+                createGroup("Stars");
+                for(const k of ["starGridStep", "starNoiseScale", "starDensityThreshold", "starDensityCurveExponent", "starSizeStrengthCurveExponent", "starWiggleFactor", "starSizeMinBase", "starSizeMaxScaledByNoise", "starFadeMinDistanceFactor", "starFadeMaxDistanceFactor"]) addControlToGroup(k, simControls[k]);
+                createGroup("Nebulae");
+                for(const k of ["nebulaGridStep", "nebulaNoiseScale", "nebulaDensityThreshold", "nebulaMaxActive", "nebulaGenerationRadiusFactor"]) addControlToGroup(k, simControls[k]);
+                
+                const regenButton = document.createElement('button');
+                regenButton.id = "regen-button";
+                regenButton.className = "sim-button";
+                regenButton.textContent = "Force Cosmos Regeneration";
+                regenButton.onclick = () => {
+                    regenButton.classList.add('flashing');
+                    forceCosmosUpdate();
+                    setTimeout(() => { regenButton.classList.remove('flashing'); }, 250);
+                };
+                debugPanel.appendChild(regenButton);
+
+                const resetButton = document.createElement('button');
+                resetButton.id = "reset-button";
+                resetButton.className = "sim-button";
+                resetButton.textContent = "Reset to Defaults";
+                resetButton.style.background = "#0cc"; 
+                resetButton.onclick = () => {
+                    simControls = JSON.parse(JSON.stringify(defaultSimControls));
+                    updateDebugPanelValues(); 
+                    resetButton.classList.add('flashing');
+                    forceCosmosUpdate();
+                    setTimeout(() => { resetButton.classList.remove('flashing'); }, 250);
+                };
+                debugPanel.appendChild(resetButton);
+            }
+            
+            forceCosmosUpdate();
+            animate();
+        }
+        
+        function forceCosmosUpdate() { /* ... same ... */  
+            if (simpleHash(simControls.seedString) !== mainSeedInt) {
+                mainSeedInt = simpleHash(simControls.seedString);
+                noise3DGen_main = createNoise3D(mulberry32(mainSeedInt + 1)); 
+                colorNoiseGenR_main = createNoise3D(mulberry32(mainSeedInt + 2)); 
+                colorNoiseGenG_main = createNoise3D(mulberry32(mainSeedInt + 3)); 
+                colorNoiseGenB_main = createNoise3D(mulberry32(mainSeedInt + 4));
+            }
+            updateDerivedSimParams(); 
+            triggerStarGenerationInWorker();
+            regenerateNebulae();
+            lastCamPosForUpdate.copy(camera.position); 
+        }
+
+        const starBaseColors = [ new THREE.Color(0x00FFFF), new THREE.Color(0xFF00FF), new THREE.Color(0x8888FF), new THREE.Color(0xFF8800), new THREE.Color(0xCC33FF), new THREE.Color(0xFFFFFF), new THREE.Color(0x88FF00), new THREE.Color(0xFFFF88)];
+        const nebulaBaseColors = [ new THREE.Color(0xFF00CC), new THREE.Color(0xFF6600), new THREE.Color(0x00BBFF), new THREE.Color(0xAA00FF), new THREE.Color(0x00FF88), new THREE.Color(0xFFAAAA)];
+
+        function triggerStarGenerationInWorker() { /* ... same ... */  
+            if (isGeneratingStars) return;
+            isGeneratingStars = true;
+            starWorker.postMessage({
+                camX: camera.position.x, camY: camera.position.y, camZ: camera.position.z,
+                simControls: simControls 
+            });
+        }
+
+        function regenerateNebulae() { /* ... same ... */   
+            const camX = camera.position.x; const camY = camera.position.y; const camZ = camera.position.z;
+            if (!noise3DGen_main) noise3DGen_main = createNoise3D(mulberry32(mainSeedInt + 1));
+            
+            const current_nebula_generation_radius = simControls.universeHorizon * simControls.nebulaGenerationRadiusFactor;
+            const currentNebulaKeys = new Set();
+            const nebMinGx = Math.floor((camX - current_nebula_generation_radius) / simControls.nebulaGridStep) * simControls.nebulaGridStep; 
+            const nebMaxGx = Math.ceil((camX + current_nebula_generation_radius) / simControls.nebulaGridStep) * simControls.nebulaGridStep;
+            const nebMinGy = Math.floor((camY - current_nebula_generation_radius) / simControls.nebulaGridStep) * simControls.nebulaGridStep; 
+            const nebMaxGy = Math.ceil((camY + current_nebula_generation_radius) / simControls.nebulaGridStep) * simControls.nebulaGridStep;
+            const nebMinGz = Math.floor((camZ - current_nebula_generation_radius) / simControls.nebulaGridStep) * simControls.nebulaGridStep; 
+            const nebMaxGz = Math.ceil((camZ + current_nebula_generation_radius) / simControls.nebulaGridStep) * simControls.nebulaGridStep;
+            
+            let createdNebulaCount = 0;
+            for (let gx = nebMinGx; gx <= nebMaxGx; gx += simControls.nebulaGridStep) {
+                for (let gy = nebMinGy; gy <= nebMaxGy; gy += simControls.nebulaGridStep) {
+                    for (let gz = nebMinGz; gz <= nebMaxGz; gz += simControls.nebulaGridStep) {
+                        if (activeNebulae.size >= simControls.nebulaMaxActive && !activeNebulae.has(`${gx}_${gy}_${gz}`)) continue;
+                        if (new THREE.Vector3(gx,gy,gz).distanceToSquared(camera.position) > current_nebula_generation_radius * current_nebula_generation_radius * 1.25) continue;
+                        const nebulaKey = `${gx}_${gy}_${gz}`; currentNebulaKeys.add(nebulaKey);
+                        if (!activeNebulae.has(nebulaKey)) {
+                            const densityNoiseVal = noise3DGen_main(gx * simControls.nebulaNoiseScale, gy * simControls.nebulaNoiseScale, gz * simControls.nebulaNoiseScale);
+                            if (densityNoiseVal > simControls.nebulaDensityThreshold) {
+                                if (activeNebulae.size < simControls.nebulaMaxActive) {
+                                    const newNebula = createSingleNebulaInstance(new THREE.Vector3(gx, gy, gz));
+                                    if (newNebula) { scene.add(newNebula); activeNebulae.set(nebulaKey, newNebula); createdNebulaCount++; }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            activeNebulae.forEach((nebula, key) => { if (!currentNebulaKeys.has(key)) { scene.remove(nebula); if(nebula && nebula.geometry) nebula.geometry.dispose(); if(nebula && nebula.material && nebula.material.dispose) nebula.material.dispose(); activeNebulae.delete(key); } });
+        }
+
+        function createSingleNebulaInstance(centerPosition) { /* ... same ... */   
+            const numParticles = 4500; const positions = []; const colors = []; const sizes = [];
+            const nebulaInstanceSeed = simpleHash(`${centerPosition.x}_${centerPosition.y}_${centerPosition.z}_${mainSeedInt}_nebula`);
+            const nebulaSpecificRandom = mulberry32(nebulaInstanceSeed);
+            if (!noise3DGen_main) noise3DGen_main = createNoise3D(mulberry32(mainSeedInt + 1));
+            const baseColorNoiseVal = noise3DGen_main(centerPosition.x*0.001, centerPosition.y*0.001, centerPosition.z*0.001 + 300);
+            const baseColor = nebulaBaseColors[Math.floor(THREE.MathUtils.mapLinear(baseColorNoiseVal, -1, 1, 0, nebulaBaseColors.length - 0.001))];
+            const mainCloudRadius = THREE.MathUtils.mapLinear(nebulaSpecificRandom(), 0, 1, 400, 800); 
+            for (let j = 0; j < numParticles; j++) { 
+                const rFraction = Math.pow(nebulaSpecificRandom(), 1.5); const r = mainCloudRadius * rFraction;
+                const theta = nebulaSpecificRandom() * 2 * Math.PI; const phi = Math.acos(2 * nebulaSpecificRandom() - 1); 
+                let pX = r * Math.sin(phi) * Math.cos(theta); let pY = r * Math.sin(phi) * Math.sin(theta); let pZ = r * Math.cos(phi);
+                const irregularityScale = mainCloudRadius * 0.4;
+                pX += (nebulaSpecificRandom() - 0.5) * irregularityScale * 2; pY += (nebulaSpecificRandom() - 0.5) * irregularityScale * 1.4; pZ += (nebulaSpecificRandom() - 0.5) * irregularityScale * 2;
+                positions.push(pX, pY, pZ); 
+                const colorVariation = baseColor.clone().offsetHSL( (nebulaSpecificRandom()-0.5)*0.2, (nebulaSpecificRandom()-0.5)*0.4, (nebulaSpecificRandom()-0.5)*0.4 );
+                colors.push(colorVariation.r, colorVariation.g, colorVariation.b); sizes.push(THREE.MathUtils.mapLinear(nebulaSpecificRandom(),0,1,20,45)); 
+            }
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3)); geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3)); geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+            const material = new THREE.ShaderMaterial({ uniforms: {}, vertexShader: nebulaVertexShader, fragmentShader: nebulaFragmentShader, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+            const nebula = new THREE.Points(geometry, material); nebula.position.copy(centerPosition); nebula.frustumCulled = false; return nebula;
+        }
+
+        const cameraMoveDirection = new THREE.Vector3(); const cameraLocalUp_Flight = new THREE.Vector3(0, 1, 0); 
+        let initialScreensaverPitch = 0; 
+        const tempCamPosForUpdateCheck = new THREE.Vector3();
+        let bgTargetColor = new THREE.Color(0x0A001A); let fogTargetColor = new THREE.Color(0x1A052A);
+        let lastBgUpdateTime = 0;
+        const targetQuaternion = new THREE.Quaternion();
+        const currentQuaternion = new THREE.Quaternion();
+        const lookAtTarget = new THREE.Vector3();
+
+        function updateDynamicBackgroundAndFog() { /* ... same ... */  
+            if (!camera || !scene) return; 
+            const time = clock.getElapsedTime();
+            if (time - lastBgUpdateTime < 0.2 && scene.background && scene.background.isColor) return; 
+            lastBgUpdateTime = time;
+            const camX = camera.position.x; const camY = camera.position.y; const camZ = camera.position.z;
+            if(!colorNoiseGenR_main) { 
+                colorNoiseGenR_main = createNoise3D(mulberry32(mainSeedInt + 2)); 
+                colorNoiseGenG_main = createNoise3D(mulberry32(mainSeedInt + 3)); 
+                colorNoiseGenB_main = createNoise3D(mulberry32(mainSeedInt + 4));
+            }
+            const rNoise = colorNoiseGenR_main(camX*simControls.bgColorNoiseScale, camY*simControls.bgColorNoiseScale, camZ*simControls.bgColorNoiseScale);
+            const gNoise = colorNoiseGenG_main(camX*simControls.bgColorNoiseScale, camY*simControls.bgColorNoiseScale, camZ*simControls.bgColorNoiseScale + 10);
+            const bNoise = colorNoiseGenB_main(camX*simControls.bgColorNoiseScale, camY*simControls.bgColorNoiseScale, camZ*simControls.bgColorNoiseScale + 20);
+            
+            bgTargetColor.setRGB( 
+                THREE.MathUtils.mapLinear(rNoise,-1,1,0.0,0.35), 
+                THREE.MathUtils.mapLinear(gNoise,-1,1,0.0,0.25), 
+                THREE.MathUtils.mapLinear(bNoise,-1,1,0.05,0.45) 
+            );
+            const fogRNoise = colorNoiseGenR_main(camX*simControls.bgColorNoiseScale*1.2, camY*simControls.bgColorNoiseScale*1.2, camZ*simControls.bgColorNoiseScale*1.2 + 5);
+            const fogGNoise = colorNoiseGenG_main(camX*simControls.bgColorNoiseScale*1.2, camY*simControls.bgColorNoiseScale*1.2, camZ*simControls.bgColorNoiseScale*1.2 + 15);
+            const fogBNoise = colorNoiseGenB_main(camX*simControls.bgColorNoiseScale*1.2, camY*simControls.bgColorNoiseScale*1.2, camZ*simControls.bgColorNoiseScale*1.2 + 25);
+            fogTargetColor.setRGB( 
+                THREE.MathUtils.mapLinear(fogRNoise,-1,1,0.0,0.4),  
+                THREE.MathUtils.mapLinear(fogGNoise,-1,1,0.0,0.3),  
+                THREE.MathUtils.mapLinear(fogBNoise,-1,1,0.1,0.5)   
+            );
+        }
+
+        function updateCamera(deltaTime) {  
+            if (!renderer || !camera ) return; 
+            
+            const prevPosition = camera.position.clone(); 
+
+            if (pointerLocked && !screensaverActive && camera.userData.wasAutopilotActive === true) {
+                const currentEuler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
+                currentEuler.z = 0; 
+                camera.quaternion.setFromEuler(currentEuler);
+                camera.userData.wasAutopilotActive = false; 
+                initialScreensaverPitch = camera.rotation.x; 
+            }
+
+            if (isWarpingIn) {
+                camera.translateZ(-warpInSpeed * deltaTime);
+                warpInSpeed -= warpInDeceleration * deltaTime;
+                if (warpInSpeed <= baseCameraMoveSpeed) {
+                    isWarpingIn = false;
+                    warpInSpeed = 0; 
+                    if (!pointerLocked) screensaverActive = true; 
+                }
+            } else if (pointerLocked && !screensaverActive) { 
+                cameraMoveDirection.set(0,0,0); 
+                if (keys['KeyW']) cameraMoveDirection.z -= 1; if (keys['KeyS']) cameraMoveDirection.z += 1;
+                if (keys['KeyA']) cameraMoveDirection.x -= 1; if (keys['KeyD']) cameraMoveDirection.x += 1;
+                
+                let actualSpeed = baseCameraMoveSpeed;
+                if (keys['ShiftLeft'] || keys['ShiftRight']) { actualSpeed = baseCameraMoveSpeed * insaneSpeedMultiplier; }
+                const effectiveMoveSpeed = actualSpeed * deltaTime;
+
+                if (cameraMoveDirection.lengthSq() > 0) cameraMoveDirection.normalize();
+                camera.translateX(cameraMoveDirection.x * effectiveMoveSpeed); 
+                camera.translateZ(cameraMoveDirection.z * effectiveMoveSpeed);
+                cameraLocalUp_Flight.set(0,1,0).applyQuaternion(camera.quaternion);
+                if (keys['KeyR']) { camera.position.addScaledVector(cameraLocalUp_Flight, effectiveMoveSpeed); }
+                if (keys['KeyF']) { camera.position.addScaledVector(cameraLocalUp_Flight, -effectiveMoveSpeed); }
+                if (isFiringMouseDown) attemptPhaserFire();
+
+            } else if (screensaverActive) { 
+                if (!camera.userData.screensaverInitialized) { 
+                    initialScreensaverPitch = camera.rotation.x; 
+                    camera.userData.screensaverInitialized = true; 
+                    autopilotBoostCooldownTimer = THREE.MathUtils.randFloat(autopilotMinBoostInterval, autopilotMaxBoostInterval);
+                    autopilotPhaserFireTimer = THREE.MathUtils.randFloat(autopilotPhaserMinFireInterval, autopilotPhaserMaxFireInterval);
+                    currentAutopilotSpeed = screensaverDriftSpeed;
+                }
+                
+                let targetSpeed = screensaverDriftSpeed;
+                autopilotBoostCooldownTimer -= deltaTime;
+                if (isAutopilotBoosting) {
+                    autopilotBoostTimer -= deltaTime;
+                    targetSpeed *= autopilotBoostMultiplier;
+                    if (autopilotBoostTimer <= 0) {
+                        isAutopilotBoosting = false;
+                        autopilotBoostCooldownTimer = THREE.MathUtils.randFloat(autopilotMinBoostInterval, autopilotMaxBoostInterval);
+                    }
+                } else if (autopilotBoostCooldownTimer <= 0) {
+                    isAutopilotBoosting = true;
+                    autopilotBoostTimer = autopilotBoostDuration;
+                }
+                currentAutopilotSpeed = THREE.MathUtils.lerp(currentAutopilotSpeed, targetSpeed, autopilotSpeedLerpFactor);
+                
+                autopilotPhaserFireTimer -= deltaTime;
+                if (autopilotPhaserFireTimer <= 0) {
+                    attemptPhaserFire(); 
+                    autopilotPhaserFireTimer = THREE.MathUtils.randFloat(autopilotPhaserMinFireInterval, autopilotPhaserMaxFireInterval);
+                }
+
+                let closestNebula = null;
+                let minDistSq = Infinity;
+                activeNebulae.forEach(nebula => {
+                    const distSq = camera.position.distanceToSquared(nebula.position);
+                    if (distSq < minDistSq && distSq < (currentGenerationRadius * 0.8) * (currentGenerationRadius * 0.8) ) {
+                        minDistSq = distSq;
+                        closestNebula = nebula;
+                    }
+                });
+                
+                const tempEuler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
+
+                if (closestNebula) {
+                    lookAtTarget.copy(closestNebula.position);
+                    targetQuaternion.setFromRotationMatrix(new THREE.Matrix4().lookAt(camera.position, lookAtTarget, camera.up));
+                    currentQuaternion.copy(camera.quaternion);
+                    currentQuaternion.slerp(targetQuaternion, screensaverNebulaSeekFactor * deltaTime * 5); 
+                    tempEuler.setFromQuaternion(currentQuaternion, 'YXZ');
+                } else {
+                     tempEuler.y += screensaverYawSpeed * deltaTime; 
+                }
+                
+                tempEuler.x = initialScreensaverPitch + (screensaverPitchAmplitude * Math.sin(clock.getElapsedTime() * screensaverPitchFrequency * Math.PI * 2));
+                tempEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, tempEuler.x));
+                
+                let currentRollSpeed = autopilotBaseRollSpeed * (isAutopilotBoosting ? autopilotBoostRollMultiplier : 1.0);
+                tempEuler.z += currentRollSpeed * deltaTime; 
+                
+                camera.quaternion.setFromEuler(tempEuler);
+                
+                camera.translateZ(-currentAutopilotSpeed * deltaTime); 
+            }
+            
+            camera.userData.wasAutopilotActive = screensaverActive; 
+            currentShipVelocity.subVectors(camera.position, prevPosition).divideScalar(deltaTime);
+        }
+
+        function animate() {  
+            requestAnimationFrame(animate); 
+            if (!renderer || !scene || !camera) return; 
+            const deltaTime = clock.getDelta();
+            if (!isWarpingIn && pointerLocked && (Date.now() - lastInteractionTime > screensaverTimeout)) {
+                if (!screensaverActive) { 
+                    screensaverActive = true; 
+                    if(camera.userData) camera.userData.screensaverInitialized = false; 
+                }
+            }
+            updateCamera(deltaTime); updatePhasers(deltaTime); 
+            updateDynamicBackgroundAndFog();
+            if (scene.background && scene.fog) { 
+                 if (!scene.background.isColor) scene.background = new THREE.Color(0x0A001A); 
+                 scene.background.lerp(bgTargetColor, 0.05);
+                 scene.fog.color.lerp(fogTargetColor, 0.05);
+            }
+            tempCamPosForUpdateCheck.copy(camera.position);
+            if (tempCamPosForUpdateCheck.distanceTo(lastCamPosForUpdate) > currentCosmosUpdateThreshold) {
+                triggerStarGenerationInWorker();
+                regenerateNebulae();
+                lastCamPosForUpdate.copy(tempCamPosForUpdateCheck);
+            }
+            renderer.render(scene, camera);
+        }
+        initThreeJS();
+    </script>
+</body>
+</html>
