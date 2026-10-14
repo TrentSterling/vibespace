@@ -597,7 +597,11 @@
             });
             gameCanvas.addEventListener('click', () => { 
                 if (!pointerLocked) { 
-                    gameCanvas.requestPointerLock({ unadjustedMovement: true }).catch(e => {}); 
+                    gameCanvas.requestPointerLock({ unadjustedMovement: true }).catch(e => {
+                        // Raw mouse movement is optional on some platforms. Keep
+                        // the same click-to-fly control with ordinary pointer lock.
+                        if (e.name === 'NotSupportedError') gameCanvas.requestPointerLock()?.catch(() => {});
+                    });
                 } 
             });
 
