@@ -1,11 +1,11 @@
 {
   "repository": "vibespace",
-  "upstreamCommit": "ae0ad2b7e0ed4c162787d1cb23fec8c8bfee88bf",
+  "upstreamCommit": "83dbfb4d8241501012c5ec22be49d79f28ccf6b7",
   "baselineCommit": "315e9a876aa688ff6686ad125d466c0f96026626",
   "originalAbout": "<h2>VibeSpace by Tront</h2><p>VibeSpace is a particle space simulation in Three.js: bodies drifting, attracting and streaking across the view, rendered as a live particle field.</p><p>One page, no install. By Tront (Trent Sterling), one of a set of small browser experiments.</p><p><strong>More from Tront</strong></p><ul><li><a href=\"https://tront.xyz/vibesand/\">VibeSand</a>: WebGPU falling-sand simulation: two million voxels updating at 60fps.</li><li><a href=\"https://tront.xyz/vibebounce/\">VibeBounce</a>: Ray propagation with bouncing physics through a procedural voxel world, on a sparse voxel octree.</li><li><a href=\"https://tront.xyz/quantumvibes/\">Quantum Vibes</a>: Interactive quantum mechanics: the double-slit experiment and Feynman path integrals in the browser.</li></ul><p class=\"tront-hub\"><a href=\"https://tront.xyz/games/\">All games and tools</a> &middot; <a href=\"https://tront.xyz/blog/\">Devlog</a> &middot; <a href=\"https://tront.xyz/discord/\">Discord</a> &middot; <a href=\"https://github.com/TrentSterling/vibespace\">Source on GitHub</a> &middot; <a href=\"https://tront.xyz/\">tront.xyz</a></p>",
   "originalJsonLd": "<script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@type\": \"SoftwareApplication\", \"name\": \"VibeSpace\", \"alternateName\": [\"VibeSpace by Tront\"], \"url\": \"https://tront.xyz/vibespace/\", \"description\": \"Three.js particle space simulation.\", \"author\": {\"@type\": \"Person\", \"name\": \"Trent Sterling\", \"alternateName\": \"Tront\", \"url\": \"https://tront.xyz/\"}, \"publisher\": {\"@type\": \"Organization\", \"name\": \"Tront\", \"url\": \"https://tront.xyz/\"}, \"isAccessibleForFree\": true, \"offers\": {\"@type\": \"Offer\", \"price\": \"0\", \"priceCurrency\": \"USD\"}, \"applicationCategory\": \"DeveloperApplication\", \"operatingSystem\": \"Web browser\"}</script>",
   "assets": {
-    "tront-about-discovery.js": "7deab312f84a943e6ebad4f5295fce272e2248a883b1d85d2327726f1c75e3dd",
-    "tront-about-discovery.css": "0471b8d1806c0a7eaeab3be67b822cb43a5278efadd103ada30a9782061fb481"
+    "tront-about-discovery.js": "78e5f1cd0ab28f5361c445cecf6d539664d6ef5a39ceedb5228e2bfca5501bed",
+    "tront-about-discovery.css": "70723556209736cc1d9e8dff2aa2fb5e68157d6ab0de2983406376baad85a8d0"
   }
 }
